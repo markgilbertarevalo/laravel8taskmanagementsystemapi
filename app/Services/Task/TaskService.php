@@ -8,18 +8,29 @@ use Auth;
 
 class TaskService
 {
+    private function authId()
+    {
+        return Auth::id();
+    }
 
     public function store($request)
     {
+        if($request->hasFile('image') === false){
+            return "no_image";
+        }
+
         $data = Task::create($this->prepareData($request));
 
-        return response()->json(['message' => "Success!"],200);
+        return "success";
     }
 
     public function prepareData($request)
     {
+        $imageName = time().'.'.$request->image->extension();
+        $request->image->move(public_path('images/tasks'), $imageName);
+
         $data['user_id'] = Auth::id();
-        $data['image'] = $request['image'];
+        $data['image'] = $imageName;
         $data['title'] = $request['title'];
 
         return $data;
@@ -27,10 +38,9 @@ class TaskService
 
     public function update($request)
     {
-        // $task->update([
-        //     'title' => $request->input('title'),
-        //     'status' => $request->input('status')
-        // ]);
+        if(!Task::where('user_id', $this->authId())->where('id', $request->id)->count() > 0){
+            return "unauthorized";
+        }
 
         $task = Task::findOrFail($request->id);
 
@@ -40,6 +50,15 @@ class TaskService
         $task->save();
 
         return $task;
+    }
+
+    public function fetchTask($task)
+    {
+        if($task->user_id !== $this->authId()){
+            return "unauthorized";
+        }
+
+        return Task::findOrFail($task->id);
     }
 
     public function subStore($request)

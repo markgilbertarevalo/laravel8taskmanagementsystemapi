@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Services\Task\TaskService;
+use App\Services\Task\ImageService;
 use App\Http\Resources\TasksResource;
 use Auth;
 
@@ -15,9 +16,14 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
+    private function authId()
+    {
+        return Auth::id();
+    }
+
     public function index()
     {
-        $id = Auth::id();
+        $id = $this->authId();
         return TasksResource::collection(Task::where('user_id', $id)->get());
     }
 
@@ -36,7 +42,12 @@ class TaskController extends Controller
     {
         try {
 
-            $taskService->store($request);
+            if($taskService->store($request) === "success"){
+                return response(null, 201);
+            }
+            else {
+                return response()->json(['error' => 'There is no image to upload.'], 400);
+            };
 
         } catch (\Exception $e) {
             return response()->json([
@@ -49,9 +60,15 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show(Task $task, TaskService $taskService)
     {
         try {
+
+            $task = $taskService->fetchTask($task);
+
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
 
             return new TasksResource($task);
 
@@ -76,17 +93,47 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, TaskService $taskService)
     {
-        $task = $taskService->update($request);
+        try {
+            $task = $taskService->update($request);
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
 
-        return new TasksResource($task);
+            return new TasksResource($task);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.update',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(Task $task, TaskService $taskService)
     {
-        $task->delete();
-        return response(null, 204);
+        try {
+            $task = $taskService->fetchTask($task);
+
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            if(!empty($task->image)){
+                $currentImage = public_path() . '/images/tasks/' . $task->image;
+
+                if(file_exists($currentImage)){
+                    unlink($currentImage);
+                }
+            }
+            $task->delete();
+            return response(null, 204);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.update',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 }
