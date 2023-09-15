@@ -54,18 +54,65 @@ class TaskService
 
     public function fetchTask($task)
     {
-        if($task->user_id !== $this->authId()){
+
+        if(!Task::where('user_id', $this->authId())->where('id', $task->id)->count() > 0){
             return "unauthorized";
         }
 
         return Task::findOrFail($task->id);
+
+    }
+
+    public function trash($task)
+    {
+        if($task->user_id !== $this->authId()){
+            return "unauthorized";
+        }
+
+        $task = Task::findOrFail($task->id);
+
+        $task->trash = "1";
+
+        $task->save();
+
+        return $task;
+    }
+
+    public function delete_all($task)
+    {
+        $data = Task::where('trash', "1")->where('user_id', $this->authId())->get();
+
+        foreach ($data as $row) {
+            if(!empty($row->image)){
+                $currentImage = public_path() . '/images/tasks/' . $row->image;
+
+                if(file_exists($currentImage)){
+                    unlink($currentImage);
+                }
+            }
+        }
+
+        Task::where('trash', "1")->where('user_id', $this->authId())->delete();
+
+        return $task;
+    }
+
+    public function search($request)
+    {
+        $query = $request->input('query');
+
+        return $tasks = Task::where('title', 'LIKE', "%$query%")
+            ->where('user_id', $this->authId())
+            ->get();
     }
 
     public function subStore($request)
     {
-        $data = SubTask::create($this->subPrepareData($request));
+        if(!Task::where('user_id', $this->authId())->where('id', $request->task_id)->count() > 0){
+            return "unauthorized";
+        }
 
-        return response()->json(['message' => "Success!"],200);
+        return $data = SubTask::create($this->subPrepareData($request));
     }
 
     public function subPrepareData($request)

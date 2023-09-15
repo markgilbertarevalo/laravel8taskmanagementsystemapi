@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             //$table->text('description')->nullable();
             $table->enum('status', ['Todo', 'In Progress', 'Completed'])->default('Todo');
+            $table->enum('trash', [0, 1])->default(0);
             $table->text('image');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')

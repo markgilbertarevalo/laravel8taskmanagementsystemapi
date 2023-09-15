@@ -19,7 +19,8 @@ return new class extends Migration
             $table->foreign('task_id')
                 ->references('id')
                 ->on('tasks')
-                ->cascade('delete');
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
         });
     }

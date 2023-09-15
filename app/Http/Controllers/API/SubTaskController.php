@@ -33,7 +33,13 @@ class SubTaskController extends Controller
     {
         try {
 
-            $taskService->subStore($request);
+            $data = $taskService->subStore($request);
+
+            if($data === "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return response(null, 200);
 
         } catch (\Exception $e) {
             return response()->json([

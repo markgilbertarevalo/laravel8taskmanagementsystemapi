@@ -14,6 +14,7 @@ class Task extends Model
         'image',
         'user_id',
         'status',
+        'trash',
     ];
 
     public function subTask()

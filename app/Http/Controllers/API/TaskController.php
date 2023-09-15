@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\SearchTaskRequest;
 use App\Services\Task\TaskService;
 use App\Services\Task\ImageService;
 use App\Http\Resources\TasksResource;
@@ -24,7 +25,7 @@ class TaskController extends Controller
     public function index()
     {
         $id = $this->authId();
-        return TasksResource::collection(Task::where('user_id', $id)->get());
+        return TasksResource::collection(Task::where('user_id', $id)->where('trash', "0")->get());
     }
 
     /**
@@ -114,20 +115,21 @@ class TaskController extends Controller
     public function destroy(Task $task, TaskService $taskService)
     {
         try {
-            $task = $taskService->fetchTask($task);
+            $task = $taskService->trash($task);
 
             if($task == "unauthorized"){
                 return response()->json(['error' => 'Unauthorized.'], 401);
             }
 
-            if(!empty($task->image)){
-                $currentImage = public_path() . '/images/tasks/' . $task->image;
+            // if(!empty($task->image)){
+            //     $currentImage = public_path() . '/images/tasks/' . $task->image;
 
-                if(file_exists($currentImage)){
-                    unlink($currentImage);
-                }
-            }
-            $task->delete();
+            //     if(file_exists($currentImage)){
+            //         unlink($currentImage);
+            //     }
+            // }
+
+            //$task->delete();
             return response(null, 204);
         } catch (\Exception $e) {
             return response()->json([
@@ -135,5 +137,34 @@ class TaskController extends Controller
                 'error' => $e->getMessage()
             ], 400);
         }
+    }
+
+    public function trash(Task $task, TaskService $taskService)
+    {
+        try {
+            $task = $taskService->delete_all($task);
+
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            //$task->delete();
+            return response(null, 204);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.update',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function search(SearchTaskRequest $request, TaskService $taskService)
+    {
+        //dd($request->query);
+
+        $tasks = $taskService->search($request);
+        //dd($tasks[0]->id);
+        //return response()->json(['tasks' => $tasks]);
+        return TasksResource::collection($tasks);
     }
 }
