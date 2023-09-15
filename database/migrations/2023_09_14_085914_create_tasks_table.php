@@ -14,9 +14,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            //$table->text('description')->nullable();
             $table->enum('status', ['Todo', 'In Progress', 'Completed'])->default('Todo');
-            $table->enum('trash', [0, 1])->default(0);
             $table->text('image');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')
@@ -24,6 +22,7 @@ return new class extends Migration
                 ->on('users')
                 ->cascade('delete');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

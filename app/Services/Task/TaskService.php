@@ -5,6 +5,7 @@ namespace App\Services\Task;
 use App\Models\Task;
 use App\Models\SubTask;
 use Auth;
+use PhpParser\Node\Stmt\TryCatch;
 
 class TaskService
 {
@@ -63,7 +64,7 @@ class TaskService
 
     }
 
-    public function trash($task)
+    public function delete($task)
     {
         if($task->user_id !== $this->authId()){
             return "unauthorized";
@@ -71,17 +72,18 @@ class TaskService
 
         $task = Task::findOrFail($task->id);
 
-        $task->trash = "1";
+        // $task->trash = "1";
 
-        $task->save();
+        // $task->save();
+        $task->delete();
 
         return $task;
     }
 
-    public function delete_all($task)
+    public function trash($task)
     {
-        $data = Task::where('trash', "1")->where('user_id', $this->authId())->get();
 
+        $data = Task::onlyTrashed()->get();
         foreach ($data as $row) {
             if(!empty($row->image)){
                 $currentImage = public_path() . '/images/tasks/' . $row->image;
@@ -89,12 +91,14 @@ class TaskService
                 if(file_exists($currentImage)){
                     unlink($currentImage);
                 }
+
+                    $task = Task::withTrashed()->find($row->id);
+                    $task->forceDelete();
             }
         }
 
-        Task::where('trash', "1")->where('user_id', $this->authId())->delete();
+        return $data;
 
-        return $task;
     }
 
     public function search($request)

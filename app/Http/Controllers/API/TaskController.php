@@ -25,17 +25,11 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $id = $this->authId();
-        return TasksResource::collection(QueryBuilder::for(Task::where('user_id', $id)->where('trash', "0"))
+        return TasksResource::collection(QueryBuilder::for(Task::where('user_id', $id))
         ->allowedFilters(['title'])
         ->allowedSorts('created_at')
         ->get());
     }
-
-    // public function sort(SortTaskRequest $request)
-    // {
-    //     $id = $this->authId();
-    //     return TasksResource::collection(Task::where('user_id', $id)->where('trash', "0"));
-    // }
 
     /**
      * Show the form for creating a new resource.
@@ -124,7 +118,7 @@ class TaskController extends Controller
     public function destroy(Task $task, TaskService $taskService)
     {
         try {
-            $task = $taskService->trash($task);
+            $task = $taskService->delete($task);
 
             if($task == "unauthorized"){
                 return response()->json(['error' => 'Unauthorized.'], 401);
@@ -150,8 +144,9 @@ class TaskController extends Controller
 
     public function trash(Task $task, TaskService $taskService)
     {
+
         try {
-            $task = $taskService->delete_all($task);
+            $task = $taskService->trash($task);
 
             if($task == "unauthorized"){
                 return response()->json(['error' => 'Unauthorized.'], 401);
@@ -161,7 +156,7 @@ class TaskController extends Controller
             return response(null, 204);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Something went wrong in TaskController.update',
+                'message' => 'Something went wrong in TaskController.trash',
                 'error' => $e->getMessage()
             ], 400);
         }
