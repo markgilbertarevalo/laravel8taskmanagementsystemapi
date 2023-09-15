@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
-use App\Http\Requests\Task\SearchTaskRequest;
 use App\Services\Task\TaskService;
-use App\Services\Task\ImageService;
 use App\Http\Resources\TasksResource;
 use Auth;
+use Illuminate\Http\Request;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class TaskController extends Controller
 {
@@ -22,11 +22,20 @@ class TaskController extends Controller
         return Auth::id();
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $id = $this->authId();
-        return TasksResource::collection(Task::where('user_id', $id)->where('trash', "0")->get());
+        return TasksResource::collection(QueryBuilder::for(Task::where('user_id', $id)->where('trash', "0"))
+        ->allowedFilters(['title'])
+        ->allowedSorts('created_at')
+        ->get());
     }
+
+    // public function sort(SortTaskRequest $request)
+    // {
+    //     $id = $this->authId();
+    //     return TasksResource::collection(Task::where('user_id', $id)->where('trash', "0"));
+    // }
 
     /**
      * Show the form for creating a new resource.
@@ -158,13 +167,4 @@ class TaskController extends Controller
         }
     }
 
-    public function search(SearchTaskRequest $request, TaskService $taskService)
-    {
-        //dd($request->query);
-
-        $tasks = $taskService->search($request);
-        //dd($tasks[0]->id);
-        //return response()->json(['tasks' => $tasks]);
-        return TasksResource::collection($tasks);
-    }
 }
