@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Task\RestoreTaskRequest;
 use App\Models\Task;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
@@ -149,6 +150,60 @@ class TaskController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Something went wrong in TaskController.trash',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function recyclebin(Request $request)
+    {
+        try {
+
+            $id = $this->authId();
+            return TasksResource::collection(QueryBuilder::for(Task::onlyTrashed()->where('user_id', $id))
+                ->allowedFilters(['title'])
+                ->allowedSorts('created_at')
+                ->get());
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.recyclebin',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function restore_task(RestoreTaskRequest $request, TaskService $taskService)
+    {
+        try {
+            $task = $taskService->restore_task($request);
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return response(null, 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.restore_task',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function bin_delete_task($request, TaskService $taskService)
+    {
+        try {
+
+            $task = $task = $taskService->bin_delete_task($request);
+
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return response(null, 204);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.bin_delete_task',
                 'error' => $e->getMessage()
             ], 400);
         }

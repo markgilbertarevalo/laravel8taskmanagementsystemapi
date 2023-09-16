@@ -101,6 +101,44 @@ class TaskService
 
     }
 
+    public function restore_task($request)
+    {
+        if(!Task::withTrashed()->where('user_id', $this->authId())->where('id', $request->id)->count() > 0){
+            return "unauthorized";
+        }
+
+        $task = Task::withTrashed()->find($request->id);
+        $task->restore();
+
+        return $task;
+    }
+
+    public function bin_delete_task($id)
+    {
+
+        if(!Task::withTrashed()->where('user_id', $this->authId())->where('id', $id)->count() > 0){
+            return "unauthorized";
+        }
+
+        $task = Task::withTrashed()->find($id);
+        if ($task == null)
+        {
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+        //dd($task->id);
+        if(!empty($task->image)){
+            $currentImage = public_path() . '/images/tasks/' . $task->image;
+
+            if(file_exists($currentImage)){
+                unlink($currentImage);
+            }
+        }
+        $task = Task::withTrashed()->find($task->id);
+        $task->forceDelete();
+
+        return $task;
+    }
+
     public function search($request)
     {
         $query = $request->input('query');
