@@ -34,7 +34,7 @@ class UserService
         }
         else{
             return response()->json([
-                'error' => 'Invalid Credentials.'
+                'errors' => ['email' => ['Invalid Credentials']]
             ], 401);
         }
     }
