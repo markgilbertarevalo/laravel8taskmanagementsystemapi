@@ -23,6 +23,8 @@ class UpdateSubTaskRequest extends FormRequest
     {
         return [
             'title' => 'required|string|min:2',
+            'status' => 'required|in:Todo,In Progress,Completed',
+            //'id' => 'required,'
         ];
     }
 }

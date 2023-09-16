@@ -23,6 +23,7 @@ class UpdateTaskRequest extends FormRequest
     {
         return [
             'title' => 'required|string|min:2',
+            'status' => 'required|in:Todo,In Progress,Completed',
             //'image' => 'required'
         ];
     }

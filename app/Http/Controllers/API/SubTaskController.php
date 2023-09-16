@@ -54,9 +54,24 @@ class SubTaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SubTask $subTask)
+    public function show($subTask, TaskService $taskService)
     {
-        //
+        try {
+
+            $task = $taskService->fetchSubTask($subTask);
+
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return new SubTasksResource($task);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.show',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     /**

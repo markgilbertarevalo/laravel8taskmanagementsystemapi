@@ -161,4 +161,16 @@ class TaskService
         return $task;
     }
 
+    public function fetchSubTask($task)
+    {
+        $count = SubTask::join('tasks', 'sub_tasks.task_id', '=', 'tasks.id')->where('tasks.user_id', $this->authId())->where('sub_tasks.id', $task)->count();
+
+        if(!$count > 0){
+            return "unauthorized";
+        }
+
+        return SubTask::findOrFail($task);
+
+    }
+
 }
