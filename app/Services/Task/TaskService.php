@@ -83,7 +83,7 @@ class TaskService
     public function trash($task)
     {
 
-        $data = Task::onlyTrashed()->get();
+        $data = Task::onlyTrashed()->where('user_id', $this->authId())->get();
         foreach ($data as $row) {
             if(!empty($row->image)){
                 $currentImage = public_path() . '/images/tasks/' . $row->image;
