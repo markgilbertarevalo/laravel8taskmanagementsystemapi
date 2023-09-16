@@ -8,6 +8,7 @@ use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Services\Task\TaskService;
 use App\Http\Resources\TasksResource;
+use App\Models\SubTask;
 use Auth;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -124,15 +125,6 @@ class TaskController extends Controller
                 return response()->json(['error' => 'Unauthorized.'], 401);
             }
 
-            // if(!empty($task->image)){
-            //     $currentImage = public_path() . '/images/tasks/' . $task->image;
-
-            //     if(file_exists($currentImage)){
-            //         unlink($currentImage);
-            //     }
-            // }
-
-            //$task->delete();
             return response(null, 204);
         } catch (\Exception $e) {
             return response()->json([

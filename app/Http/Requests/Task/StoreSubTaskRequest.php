@@ -22,7 +22,7 @@ class StoreSubTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|min:2'
+            'title' => 'required|string|min:2',
         ];
     }
 }

@@ -27,5 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('subtask', [\App\Http\Controllers\API\SubTaskController::class, 'store']);
     Route::put('tasks', [\App\Http\Controllers\API\TaskController::class, 'update']);
     Route::delete('trash', [\App\Http\Controllers\API\TaskController::class, 'trash']);
-    //Route::get('search', [\App\Http\Controllers\API\TaskController::class, 'search']);
+    Route::delete('subtask/{id}', [\App\Http\Controllers\API\SubTaskController::class, 'destroy']);
+    Route::put('subtasks', [\App\Http\Controllers\API\SubTaskController::class, 'update']);
+    //Route::apiResource('subtask', \App\Http\Controllers\API\SubTaskController::class);
 });

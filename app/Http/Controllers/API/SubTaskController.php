@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SubTask;
 use App\Http\Requests\Task\StoreSubTaskRequest;
 use App\Http\Requests\Task\UpdateSubTaskRequest;
+use App\Http\Resources\SubTasksResource;
 use App\Services\Task\TaskService;
+use Illuminate\Http\Request;
 
 class SubTaskController extends Controller
 {
@@ -68,16 +70,40 @@ class SubTaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSubTaskRequest $request, SubTask $subTask)
+    public function update(UpdateSubTaskRequest $request, TaskService $taskService)
     {
-        //
+        try {
+            $task = $taskService->subUpdate($request);
+            if($task == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return new SubTasksResource($task);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in TaskController.update',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SubTask $subTask)
+    public function destroy($subTask, TaskService $taskService)
     {
-        //
+        try {
+            $subTask = $taskService->subDelete($subTask);
+            if($subTask == "unauthorized"){
+                return response()->json(['error' => 'Unauthorized.'], 401);
+            }
+
+            return response(null, 204);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Something went wrong in SubTaskController.destroy',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 }

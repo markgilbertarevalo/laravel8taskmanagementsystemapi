@@ -127,4 +127,38 @@ class TaskService
         return $data;
     }
 
+    public function subUpdate($request)
+    {
+
+        $count = SubTask::join('tasks', 'sub_tasks.task_id', '=', 'tasks.id')->where('tasks.user_id', $this->authId())->where('sub_tasks.id', $request->id)->count();
+        //dd(SubTask::join('tasks', 'sub_tasks.id', '=', 'task.id')->where('tasks.user_id', $this->authId())->where('sub_tasks.id', $request->id)->count());
+        if(!$count > 0){
+            return "unauthorized";
+        }
+
+        $task = SubTask::findOrFail($request->id);
+
+        $task->title = $request->title;
+        $task->status = $request->status;
+
+        $task->save();
+
+        return $task;
+    }
+
+    public function subDelete($task)
+    {
+        $count = SubTask::join('tasks', 'sub_tasks.task_id', '=', 'tasks.id')->where('tasks.user_id', $this->authId())->where('sub_tasks.id', $task)->count();
+
+        if(!$count > 0){
+            return "unauthorized";
+        }
+
+        $task = SubTask::findOrFail($task);
+
+        $task->delete();
+
+        return $task;
+    }
+
 }
